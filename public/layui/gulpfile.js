@@ -1,5 +1,5 @@
 /**
- layuiAdmin pro 构建
+ layuiAdmin std 构建
 */
 
 var pkg = require('./package.json');
@@ -37,20 +37,23 @@ var argv = require('minimist')(process.argv.slice(2), {
   //压缩 JS
   minjs: function(){
     var src = [
-      './src/**/*.js'
-      ,'!./src/config.js'
-      ,'!./src/lib/extend/echarts.js'
+      './src/layuiadmin/**/*.js'
+      ,'!./src/layuiadmin/json/**/*.js'
+      ,'!./src/layuiadmin/layui/**/*.js'
+      ,'!./src/layuiadmin/config.js'
+      ,'!./src/layuiadmin/lib/extend/echarts.js'
     ];
     
     return gulp.src(src).pipe(uglify())
      .pipe(header.apply(null, note))
-    .pipe(gulp.dest(destDir));
+    .pipe(gulp.dest(destDir + '/layuiadmin'));
   }
   
   //压缩 CSS
   ,mincss: function(){
     var src = [
-      './src/**/*.css'
+      './src/layuiadmin/**/*.css'
+      ,'!./src/layuiadmin/layui/**/*.css'
     ]
      ,noteNew = JSON.parse(JSON.stringify(note));
      
@@ -60,22 +63,39 @@ var argv = require('minimist')(process.argv.slice(2), {
     return gulp.src(src).pipe(minify({
       compatibility: 'ie7'
     })).pipe(header.apply(null, noteNew))
-    .pipe(gulp.dest(destDir));
+    .pipe(gulp.dest(destDir + '/layuiadmin'));
   }
   
   //复制文件夹
   ,mv: function(){    
-    gulp.src('./src/config.js')
-    .pipe(gulp.dest(destDir));
+    gulp.src('./src/layuiadmin/json/**/*')
+    .pipe(gulp.dest(destDir + '/layuiadmin/json'));
     
-    gulp.src('./src/lib/extend/echarts.js')
-    .pipe(gulp.dest(destDir + '/lib/extend'));
+    gulp.src('./src/layuiadmin/lib/extend/echarts.js')
+    .pipe(gulp.dest(destDir + '/layuiadmin/lib/extend'));
     
-    gulp.src('./src/style/res/**/*')
-    .pipe(gulp.dest(destDir + '/style/res'));
+    gulp.src('./src/layuiadmin/config.js')
+    .pipe(gulp.dest(destDir + '/layuiadmin'));
+    
+    gulp.src('./src/layuiadmin/tpl/**/*')
+    .pipe(gulp.dest(destDir + '/layuiadmin/tpl'));
+    
+    gulp.src('./src/layuiadmin/style/res/**/*')
+    .pipe(gulp.dest(destDir + '/layuiadmin/style/res'));
+    
+    gulp.src('./src/layuiadmin/style/res/*')
+    .pipe(gulp.dest(destDir + '/layuiadmin/style/res'));
     
     return gulp.src('./src/views/**/*')
     .pipe(gulp.dest(destDir + '/views'));
+  }
+  
+  //复制 layui
+  ,layui: function(){
+    return gulp.src('../../../../res/layui/rc/**/*')
+    .pipe(gulp.dest('./dev-std/layuiadmin/layui'))
+    .pipe(gulp.dest('./src/layuiadmin/layui'))
+    .pipe(gulp.dest('./dist/layuiadmin/layui'))
   }
 };
 
@@ -84,16 +104,14 @@ var argv = require('minimist')(process.argv.slice(2), {
 gulp.task('clear', function(cb) {
   return del(['./dist/*'], cb);
 });
-gulp.task('clearRelease', function(cb) {
-  return del(['./json/*', releaseDir], cb);
-});
 
 gulp.task('minjs', task.minjs);
 gulp.task('mincss', task.mincss);
 gulp.task('mv', task.mv);
+gulp.task('layui', task.layui);
 
 gulp.task('src', function(){ //命令：gulp src
-  return gulp.src('./dev-pro/**/*')
+  return gulp.src('./dev-std/**/*')
   .pipe(gulp.dest('./src'));
 });
 
@@ -105,7 +123,7 @@ gulp.task('default', ['clear', 'src'], function(){ //命令：gulp
 });
 
 //发行 - layuiAdmin 官方使用
-gulp.task('release', function(){ //命令：gulp && gulp release
+gulp.task('release', ['layui'], function(){ //命令：gulp && gulp release
   
   //复制核心文件
   gulp.src('./dist/**/*')
@@ -113,21 +131,6 @@ gulp.task('release', function(){ //命令：gulp && gulp release
   
   gulp.src('./src/**/*')
   .pipe(gulp.dest(releaseDir + '/src'));
-
-  //复制 json
-  gulp.src('./dev/json/**/*')
-  .pipe(gulp.dest('./json'))
-  .pipe(gulp.dest('./start/json'))
-  .pipe(gulp.dest(releaseDir + '/start/json'));
-
-  //复制并转义宿主页面
-  gulp.src('./dev/index.html')
-    .pipe(replace(/\<\!-- clear s --\>([\s\S]*?)\<\!-- clear e --\>/, ''))
-    .pipe(replace('//local.res.layui.com/layui/src', 'layui'))
-    .pipe(replace("base: '../dev-pro/'", "base: '../dist/'"))
-    .pipe(replace('@@version@@', pkg.version))
-  .pipe(gulp.dest('./start'))
-  .pipe(gulp.dest(releaseDir + '/start'));
   
   //复制帮助文件
   gulp.src([
@@ -139,21 +142,15 @@ gulp.task('release', function(){ //命令：gulp && gulp release
     './帮助/说明.txt'
   ]).pipe(gulp.dest(releaseDir));
   
-  
-  //复制 gulpfile
-  gulp.src([
-    'gulpfile.js'
-    ,'package.json'
-  ]).pipe(gulp.dest(releaseDir));
-  
   //说明
   gulp.src('../pack/说明.txt')
   .pipe(gulp.dest('../pack/layuiAdmin.pack'));
   
-  //复制 layui
-  return gulp.src('../../../../res/layui/rc/**/*')
-  .pipe(gulp.dest('./start/layui'))
-  .pipe(gulp.dest(releaseDir + '/start/layui'))
+  //复制 gulpfile
+  return gulp.src([
+    'gulpfile.js'
+    ,'package.json'
+  ]).pipe(gulp.dest(releaseDir));
 });
 
 

@@ -1,11 +1,10 @@
-
-layuiAdmin pro（单页版）
+layuiAdmin std（iframe版）
 
 # 关于产品
-layuiAdmin pro 是一款由 layui 官方出品的高质量付费产品，可用于快速开发单页面应用的后台管理系统。
+layuiAdmin std 是一款由 layui 官方出品的高质量付费产品，可用于快速开发通用型后台管理系统。
 
 # 运行说明：
-直接运行入口文件即可： start/index.html
+直接运行入口文件即可： src/views/index.html
 
 
 # 目录说明：
